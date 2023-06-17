@@ -8,6 +8,7 @@
 import React, {useEffect, useState} from 'react';
 import {
   ActivityIndicator,
+  Keyboard,
   StyleSheet,
   Text,
   TextInput,
@@ -22,6 +23,7 @@ function App() {
   const [moedaSelecionada, setMoedaSelecionada] = useState(null);
   const [valorInput, setvalorInput] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [valorConvertido, setValorConvertido] = useState(0);
 
   useEffect(() => {
     async function loadMoedas() {
@@ -43,6 +45,22 @@ function App() {
 
     loadMoedas();
   }, []);
+
+  async function convert() {
+    if (moedaSelecionada === null || valorInput === 0) {
+      alert('Por favor selecione uma moeda');
+      return;
+    }
+
+    const response = await api.get(`/all/${moedaSelecionada}-BRL`);
+
+    let resultado =
+      response.data[moedaSelecionada].ask * parseFloat(valorInput);
+    setValorConvertido(`R$ ${resultado.toFixed(2)}`);
+    setValorMoeda(valorInput);
+
+    Keyboard.dismiss();
+  }
 
   if (loading) {
     return (
@@ -74,17 +92,21 @@ function App() {
           />
         </View>
 
-        <TouchableOpacity style={styles.botaoArea}>
+        <TouchableOpacity style={styles.botaoArea} onPress={convert}>
           <Text style={styles.botaoTexto}>Converter</Text>
         </TouchableOpacity>
 
-        <View style={styles.areaResultado}>
-          <Text style={styles.valorConvertido}>3 USD</Text>
-          <Text style={[styles.valorConvertido, {fontSize: 18, margin: 10}]}>
-            Corresponde a
-          </Text>
-          <Text style={styles.valorConvertido}>19,90</Text>
-        </View>
+        {valorInput !== 0 && (
+          <View style={styles.areaResultado}>
+            <Text style={styles.valorConvertido}>
+              {valorInput} {moedaSelecionada}
+            </Text>
+            <Text style={[styles.valorConvertido, {fontSize: 18, margin: 10}]}>
+              Corresponde a
+            </Text>
+            <Text style={styles.valorConvertido}>{valorConvertido}</Text>
+          </View>
+        )}
       </View>
     );
   }
